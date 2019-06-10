@@ -2,6 +2,11 @@ const config = require('./config');
 let mysql = require('mysql');
 let yaml = require('js-yaml');
 let fs = require('fs');
+var logger = require('logger').createLogger();
+
+logger.setLevel('error');
+
+const OVERWRITE_DB = false;
 
 let connection = mysql.createConnection({
     host: config.l_host,
@@ -14,39 +19,44 @@ connection.connect(function (err) {
     if (err) {
         return console.error('error: ' + err.message);
     }
-    console.log('Connected to the MySQL server, id: ' + connection.threadId);
+    // console.log('Connected to the MySQL server, id: ' + connection.threadId);
+    logger.info('Connected to the MySQL server, id: ' + connection.threadId);
     initializeDatabase();
     initializeUsers();
 });
 
 function initializeDatabase() {
+    let sql;
+    OVERWRITE_DB ? sql = " " : sql = " IF NOT EXISTS "
 
-    connection.query("CREATE DATABASE IF NOT EXISTS vikesbf_no", function (err, res) {
+    connection.query("CREATE DATABASE" + sql + "vikesbf_no", function (err, res) {
         if (err) throw err;
         if (res.affectedRows == 0) {
-            console.log("Database already exists.");
+            // console.log("Database already exists.");
+            logger.info('Database already exists')
         } else if (res.affectedRows > 0) {
-            console.log("Database created.");
+            // console.log("Database created.");
+            logger.info('Database created');
         }
     });
 
-    connection.query("CREATE TABLE IF NOT EXISTS users (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(255))",
+    connection.query("CREATE TABLE" + sql + "users (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(255))",
         function (err, res) {
             if (err) throw err;
             if (res.affectedRows == 0) {
-                console.log("Table 'users' already exists.");
+                logger.info("Table 'users' already exists.");
             } else if (res.affectedRows > 0) {
-                console.log("Table 'users' created.");
+                logger.info("Table 'users' created.");
             }
         });
 
-    connection.query("CREATE TABLE IF NOT EXISTS posts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), content VARCHAR(420), user INT)",
+    connection.query("CREATE TABLE" + sql + "posts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), content VARCHAR(420), user INT)",
         function (err, res) {
             if (err) throw err;
             if (res.affectedRows == 0) {
-                console.log("Table 'posts' already exists.");
+                logger.info("Table 'posts' already exists.");
             } else if (res.affectedRows > 0) {
-                console.log("Table 'posts' created.");
+                logger.info("Table 'posts' created.");
             }
         });
 }
@@ -64,10 +74,9 @@ function initializeUsers() {
             connection.query(sql_sel, function (err, res) {
                 if (err) throw err;
                 else if (res.length > 0) {
-                    console.log("User already exists.");
+                   logger.info("User already exists.");
                 } else {
-                    console.log(res);
-                    console.log("User does not exist, adding to db now.");
+                   logger.info("User does not exist, adding to db now.");
                     connection.query(sql_ins, [values], function (err, res) {
                         if (err) throw err;
                     });
@@ -75,7 +84,7 @@ function initializeUsers() {
             });
         }
     } catch (e) {
-        console.log(e);
+        logger.error(e);
     }
 
 }
