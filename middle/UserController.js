@@ -16,19 +16,13 @@ router.post('/', function (req, res) {
     var user = User.create(body); // call User constructor
 
     if (user !== null) { // if User failed to be created, otherwise... connect to database
-
         let sql = "INSERT INTO `users` (name, email, phone) VALUES ?";
-        let values = [
-            [user.name, user.email, user.phone]
-        ];
-
+        let values = [[user.name, user.email, user.phone]];
         connection.query(sql, [values], function (err, result) {
             if (err) throw err;
             console.log(result);
         });
     }
-
-   
 });
 
 // RETURNS ALL THE USERS IN THE DATABASE
