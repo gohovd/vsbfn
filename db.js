@@ -6,7 +6,7 @@ var logger = require('logger').createLogger();
 
 logger.setLevel('error');
 
-const OVERWRITE_DB = false;
+const OVERWRITE_USERS = false;
 
 let connection = mysql.createConnection({
     host: config.l_host,
@@ -26,21 +26,23 @@ connection.connect(function (err) {
 });
 
 function initializeDatabase() {
-    let sql;
-    OVERWRITE_DB ? sql = " " : sql = " IF NOT EXISTS "
+    if (OVERWRITE_USERS) {
+        connection.query("DROP TABLE IF EXISTS `users`", function(err, res) {
+            if (err) throw err;
+            logger.info("Users table dropped.");
+        });
+    }
 
-    connection.query("CREATE DATABASE" + sql + "vikesbf_no", function (err, res) {
+    connection.query("CREATE DATABASE IF NOT EXISTS vikesbf_no", function (err, res) {
         if (err) throw err;
         if (res.affectedRows == 0) {
-            // console.log("Database already exists.");
             logger.info('Database already exists')
         } else if (res.affectedRows > 0) {
-            // console.log("Database created.");
             logger.info('Database created');
         }
     });
 
-    connection.query("CREATE TABLE" + sql + "users (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(255))",
+    connection.query("CREATE TABLE IF NOT EXISTS users (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(255), role VARCHAR(255))",
         function (err, res) {
             if (err) throw err;
             if (res.affectedRows == 0) {
@@ -50,7 +52,7 @@ function initializeDatabase() {
             }
         });
 
-    connection.query("CREATE TABLE" + sql + "posts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), content VARCHAR(420), user INT)",
+    connection.query("CREATE TABLE IF NOT EXISTS posts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), content VARCHAR(420), user INT)",
         function (err, res) {
             if (err) throw err;
             if (res.affectedRows == 0) {
@@ -64,11 +66,10 @@ function initializeDatabase() {
 function initializeUsers() {
     try {
         var users = yaml.safeLoad(fs.readFileSync('./data/users.yml', 'utf8'));
-        let sql_ins = "INSERT INTO `users` (name, email, phone) VALUES ?";
+        let sql_ins = "INSERT INTO `users` (name, email, phone, role) VALUES ?";
 
         for (var main_user of users.main_user) {
-
-            let values = [[main_user.name, main_user.email, main_user.phone]];
+            let values = [[main_user.name, main_user.email, main_user.phone, main_user.role]];
             let sql_sel = "SELECT * FROM `users` WHERE email = '" + main_user.email + "'";
 
             connection.query(sql_sel, function (err, res) {
