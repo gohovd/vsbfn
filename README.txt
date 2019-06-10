@@ -1,0 +1,1 @@
+- Parallax or panorama roll for the landing image
