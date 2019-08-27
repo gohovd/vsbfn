@@ -4,7 +4,7 @@ let yaml = require('js-yaml');
 let fs = require('fs');
 var logger = require('logger').createLogger();
 
-logger.setLevel('error');
+logger.setLevel('warn');
 
 const OVERWRITE_USERS = false;
 
@@ -17,6 +17,7 @@ let connection = mysql.createConnection({
 
 connection.connect(function (err) {
     if (err) {
+        logger.warn("No database connection, shooting blanks!");
         return console.error('error: ' + err.message);
     }
     // console.log('Connected to the MySQL server, id: ' + connection.threadId);
