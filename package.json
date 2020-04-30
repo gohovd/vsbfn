@@ -31,7 +31,7 @@
     "body-parser": "^1.18.3",
     "bootstrap": "^4.3.1",
     "express": "^4.16.4",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "js-yaml": "^3.13.1",
     "jsonwebtoken": "^8.5.1",
     "logger": "0.0.1",
